@@ -342,18 +342,18 @@
 
     <script>
         const rudiments = [
-            { name: "Single Stroke", pattern: "RLRLRLRL" },
-            // { name: "Single Stroke", pattern: "LRLRLRLR" },
-            // { name: "Double Stroke", pattern: "RRLLRRLL" },
-            // { name: "Double Stroke", pattern: "LLRRLLRR" },
-            // { name: "Paradiddle", pattern: "RLRRLRLL" },
-            // { name: "Paradiddle", pattern: "LRRLRLLR" },
-            // { name: "Paradiddle", pattern: "RRLRLLRL" },
-            // { name: "Paradiddle", pattern: "RLRLLRLR" },
-            // { name: "Paradiddle", pattern: "LRLLRLRR" },
-            // { name: "Paradiddle", pattern: "RLLRLRRL" },
-            // { name: "Paradiddle", pattern: "LLRLRRLR" },
-            // { name: "Paradiddle", pattern: "LRLRRLRL" },
+            { name: "Single Stroke", pattern: "RLRLRLRL", sound: "samples/crash-1.mp3" },
+            { name: "Single Stroke", pattern: "LRLRLRLR", sound: "samples/crash-2.mp3" },
+            { name: "Double Stroke", pattern: "RRLLRRLL" , sound: "samples/crash-2.mp3" },
+            { name: "Double Stroke", pattern: "LLRRLLRR" , sound: "samples/crash-3.mp3" },
+            { name: "Paradiddle", pattern: "RLRRLRLL" , sound: "samples/crash-4.mp3" },
+            { name: "Paradiddle", pattern: "LRRLRLLR" , sound: "samples/crash-3.mp3" },
+            { name: "Paradiddle", pattern: "RRLRLLRL" , sound: "samples/crash-4.mp3" },
+            { name: "Paradiddle", pattern: "RLRLLRLR" , sound: "samples/crash-5.mp3" },
+            { name: "Paradiddle", pattern: "LRLLRLRR" , sound: "samples/crash-4.mp3" },
+            { name: "Paradiddle", pattern: "RLLRLRRL" , sound: "samples/crash-5.mp3" },
+            { name: "Paradiddle", pattern: "LLRLRRLR" , sound: "samples/crash-6.mp3" },
+            { name: "Paradiddle", pattern: "LRLRRLRL" , sound: "samples/crash-7.mp3" },
         ];
         for (const rud of rudiments) {
             rud.pattern = `${rud.pattern}${rud.pattern}`;
@@ -368,7 +368,9 @@
         let audioContext;
         let leftSoundBuffer;
         let rightSoundBuffer;
+        let crashSoundBuffer; // New buffer for crash cymbal sound
         let soundInitialized = false;
+        let soundBufferCache = {}; // Cache for storing loaded sound buffers
 
         // --- DOM Elements ---
         const rudimentNameEl = document.getElementById('rudiment-name');
@@ -409,6 +411,7 @@
 
                 loadSound('left.wav').then(buffer => leftSoundBuffer = buffer).catch(e => console.error("Error loading left sound:", e));
                 loadSound('right.wav').then(buffer => rightSoundBuffer = buffer).catch(e => console.error("Error loading right sound:", e));
+                loadSound('crash.wav').then(buffer => crashSoundBuffer = buffer).catch(e => console.error("Error loading crash sound:", e));
 
                 soundInitialized = true;
                 console.log("Audio initialized.");
@@ -422,6 +425,12 @@
 
         async function loadSound(url) {
             if (!audioContext) return null;
+
+            // Check if the sound is already in the cache
+            if (soundBufferCache[url]) {
+                return soundBufferCache[url];
+            }
+
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
@@ -430,6 +439,10 @@
                 const arrayBuffer = await response.arrayBuffer();
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 console.log(`Sound loaded: ${url}`);
+
+                // Store the sound in the cache
+                soundBufferCache[url] = audioBuffer;
+
                 return audioBuffer;
             } catch (error) {
                 console.error(`Could not load sound file: ${url}`, error);
@@ -457,6 +470,30 @@
                 source.start(0); // Play immediately
             } catch (error) {
                 console.error("Error playing sound:", error);
+            }
+        }
+
+        // Function to play completion sound based on rudiment sound property
+        async function playCompleteSound(soundFile) {
+            // If no specific sound file is provided, use the default crash sound
+            if (!soundFile) {
+                playSound(crashSoundBuffer);
+                return;
+            }
+
+            // Load and play the specific sound for this rudiment
+            try {
+                const buffer = await loadSound(soundFile);
+                if (buffer) {
+                    playSound(buffer);
+                } else {
+                    // Fallback to default crash sound if loading fails
+                    console.warn(`Failed to load ${soundFile}, using default crash sound`);
+                    playSound(crashSoundBuffer);
+                }
+            } catch (error) {
+                console.error("Error playing rudiment sound:", error);
+                playSound(crashSoundBuffer); // Fallback
             }
         }
 
@@ -578,6 +615,11 @@
                     if (correctRepetitions >= requiredRepetitions) {
                         feedbackEl.textContent = `Level Complete! Next pattern loaded.`;
                         feedbackEl.style.color = '#3f51b5'; // Indigo
+
+                        // Play the rudiment-specific completion sound
+                        const currentRudiment = rudiments[currentRudimentIndex];
+                        playCompleteSound(currentRudiment.sound);
+
                         loadRudiment(currentRudimentIndex + 1); // Load next pattern immediately
                     } else {
                         const remaining = requiredRepetitions - correctRepetitions;
@@ -739,6 +781,9 @@
             const highScore = saveHighScore(elapsedTime);
 
             document.getElementById('controls').style.display = 'none';
+
+            // Play crash cymbal for game completion (using default sound)
+            playCompleteSound();
 
             feedbackEl.innerHTML = `Game Complete!<br>Time: ${(elapsedTime / 1000).toFixed(3)}s.<br>Record: ${(highScore / 1000).toFixed(3)}s`;
             feedbackEl.style.color = '#3f51b5'; // Indigo
