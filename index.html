@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Rudiment Rhythm Game</title>
+    <style>
+        /* Basic Reset & Body Styling */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            /* Remove tap highlight on mobile */
+        }
+
+        html,
+        body {
+            height: 100%;
+            /* Ensure body takes full height */
+            margin: 0;
+            overflow: hidden;
+            /* Prevent scrolling */
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Replace the gradient with the background image */
+            background: url('bg.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            text-align: center;
+        }
+
+        /* Game Container */
+        #game-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px 25px 5px;
+            /* Slightly adjusted padding */
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Center items horizontally */
+        }
+
+        /* Add transparency to controls div */
+        #controls {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        @media (max-width: 767px) {
+            #controls {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+
+            #game-container {
+                padding: 15px 20px;
+                width: 95%;
+            }
+        }
+
+        /* Headings and Text */
+        h1 {
+            color: #3f51b5;
+            /* Indigo */
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+            /* Relative font size */
+        }
+
+        #rudiment-name {
+            font-size: 1.6em;
+            /* Relative font size */
+            font-weight: bold;
+            color: #607d8b;
+            /* Blue Grey */
+            margin-bottom: 5px;
+        }
+
+        #sticking-pattern {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.4em;
+            /* Relative font size */
+            color: #009688;
+            /* Teal */
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            word-wrap: break-word;
+            /* Ensure long patterns wrap */
+        }
+
+        #instructions {
+            margin-bottom: 20px;
+            font-size: 1em;
+            /* Relative font size */
+            color: #555;
+            line-height: 1.4;
+        }
+
+        #instructions strong {
+            color: #ff9800;
+            /* Orange */
+        }
+
+        /* Drum Pads Area */
+        #drum-pads {
+            display: flex;
+            justify-content: space-around;
+            /* Space out pads */
+            width: 100%;
+            /* Take full width of container */
+            margin-bottom: 20px;
+            min-height: 110px;
+            /* Ensure space */
+        }
+
+        /* Individual Pads */
+        .pad {
+            width: 40%;
+            /* Relative width */
+            max-width: 120px;
+            /* Max size */
+            aspect-ratio: 1 / 1;
+            /* Make them square/circular */
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            /* Stack text vertically */
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1em;
+            /* Adjust font size for smaller pads */
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            /* Indicate interactivity */
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            user-select: none;
+            /* Prevent text selection on tap */
+            -webkit-user-select: none;
+            /* Safari */
+            -ms-user-select: none;
+            /* IE */
+        }
+
+        .pad span {
+            font-size: 0.8em;
+            font-weight: normal;
+            margin-top: 5px;
+        }
+
+        #left-pad {
+            background-color: #4CAF50;
+            /* Green */
+            border: 4px solid #388E3C;
+        }
+
+        #right-pad {
+            background-color: #2196F3;
+            /* Blue */
+            border: 4px solid #1976D2;
+        }
+
+        /* Pad Feedback Styles */
+        .pad.active {
+            transform: scale(1.1);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .pad.highlight {
+            border: 4px solid yellow;
+            box-shadow: 0 0 15px yellow;
+        }
+
+        .pad.correct {
+            background-color: #81C784 !important;
+            /* Lighter Green */
+            border-color: #66BB6A;
+        }
+
+        .pad.incorrect {
+            background-color: #E57373 !important;
+            /* Lighter Red */
+            border-color: #EF5350;
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+
+            /* Shake animation */
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        /* Feedback & Input Display */
+        #feedback {
+            font-size: 1.1em;
+            /* Relative font size */
+            font-weight: bold;
+            min-height: 30px;
+            margin-top: 15px;
+        }
+
+        #current-input {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.2em;
+            /* Relative font size */
+            min-height: 25px;
+            margin-top: 8px;
+            color: #333;
+            letter-spacing: 2px;
+            background-color: #eee;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            word-wrap: break-word;
+            /* Wrap long input */
+        }
+
+        /* Remove Demo Button styles */
+        button#demo-button {
+            display: none;
+            /* Hide instead of removing completely for safety */
+        }
+
+        .pattern-display {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: #555;
+            background-color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            word-wrap: break-word;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Add disabled state for pads */
+        .pad.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+            /* Prevent interactions */
+            box-shadow: none;
+        }
+
+        /* Highlight for the next letter to play */
+        .next-letter {
+            display: inline-block;
+            background-color: yellow;
+            color: #333;
+            padding: 0 4px;
+            border-radius: 3px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Add styling for the reset record button */
+        #reset-record {
+            margin-top: 15px;
+            font-size: 0.8em;
+            padding: 5px 10px;
+            background-color: #607d8b;
+            /* Blue Grey */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        #reset-record:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <h1>Drum Rudiment Trainer</h1>
+
+        <div id="controls">
+            <div id="instructions">
+                Tap the pads or use keys: <strong>'K'</strong> for Right (R) and <strong>'D'</strong> for Left (L). <br>
+                Complete all patterns the fastest to set the record!
+            </div>
+
+            <div id="rudiment-name">Paradiddle</div>
+            <div id="sticking-pattern">R L R R L R L L</div>
+
+            <div id="drum-pads">
+                <div class="pad" id="left-pad">L<span>(D key)</span></div>
+                <div class="pad" id="right-pad">R<span>(K key)</span></div>
+            </div>
+        </div>
+        <div id="feedback">Tap Pad or Press Key to start...</div>
+
+        <button id="reset-record">Reset Record</button>
+    </div>
+
+    <script>
+        const rudiments = [
+            { name: "Single Stroke", pattern: "RLRLRLRL" },
+            { name: "Single Stroke", pattern: "LRLRLRLR" },
+            { name: "Double Stroke", pattern: "RRLLRRLL" },
+            { name: "Double Stroke", pattern: "LLRRLLRR" },
+            { name: "Paradiddle", pattern: "RLRRLRLL" },
+            { name: "Paradiddle", pattern: "LRRLRLLR" },
+            { name: "Paradiddle", pattern: "RRLRLLRL" },
+            { name: "Paradiddle", pattern: "RLRLLRLR" },
+            { name: "Paradiddle", pattern: "LRLLRLRR" },
+            { name: "Paradiddle", pattern: "RLLRLRRL" },
+            { name: "Paradiddle", pattern: "LLRLRRLR" },
+            { name: "Paradiddle", pattern: "LRLRRLRL" },
+        ];
+        for (const rud of rudiments) {
+            rud.pattern = `${rud.pattern}${rud.pattern}`;
+        }
+
+        let currentRudimentIndex = 0;
+        let currentPattern = '';
+        let expectedInput = '';
+        let playerInput = '';
+        let correctRepetitions = 0;
+        let requiredRepetitions = 3;
+        let audioContext;
+        let leftSoundBuffer;
+        let rightSoundBuffer;
+        let soundInitialized = false;
+
+        // --- DOM Elements ---
+        const rudimentNameEl = document.getElementById('rudiment-name');
+        const stickingPatternEl = document.getElementById('sticking-pattern');
+        const instructionsEl = document.getElementById('instructions');
+        const repetitionsNeededEl = document.getElementById('repetitions-needed');
+        const leftPadEl = document.getElementById('left-pad');
+        const rightPadEl = document.getElementById('right-pad');
+        const feedbackEl = document.getElementById('feedback');
+        const currentPatternEl = document.getElementById('current-pattern');
+        const upcomingPatternEl = document.getElementById('upcoming-pattern');
+
+        // --- Audio Setup ---
+        function initAudio() {
+            if (soundInitialized) return; // Prevent re-initialization
+            try {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!window.AudioContext) {
+                    console.warn("Web Audio API is not supported in this browser.");
+                    feedbackEl.textContent = "Warning: Audio not supported.";
+                    feedbackEl.style.color = 'orange';
+                    soundInitialized = true; // Mark as "initialized" even if failed
+                    return;
+                }
+                audioContext = new AudioContext();
+                // Resume context on first user interaction (required by browsers)
+                const resumeAudio = () => {
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+                    document.removeEventListener('click', resumeAudio);
+                    document.removeEventListener('keydown', resumeAudio);
+                    document.removeEventListener('touchstart', resumeAudio);
+                };
+                document.addEventListener('click', resumeAudio);
+                document.addEventListener('keydown', resumeAudio);
+                document.addEventListener('touchstart', resumeAudio);
+
+                loadSound('left.wav').then(buffer => leftSoundBuffer = buffer).catch(e => console.error("Error loading left sound:", e));
+                loadSound('right.wav').then(buffer => rightSoundBuffer = buffer).catch(e => console.error("Error loading right sound:", e));
+
+                soundInitialized = true;
+                console.log("Audio initialized.");
+            } catch (e) {
+                console.error("Error initializing AudioContext:", e);
+                feedbackEl.textContent = "Error initializing audio.";
+                feedbackEl.style.color = 'red';
+                soundInitialized = true; // Mark as done
+            }
+        }
+
+        async function loadSound(url) {
+            if (!audioContext) return null;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} for ${url}`);
+                }
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                console.log(`Sound loaded: ${url}`);
+                return audioBuffer;
+            } catch (error) {
+                console.error(`Could not load sound file: ${url}`, error);
+                feedbackEl.textContent = `Error loading ${url.split('/').pop()}. Check console.`;
+                feedbackEl.style.color = 'red';
+                return null; // Indicate failure
+            }
+        }
+
+        function playSound(buffer) {
+            if (!audioContext || !buffer || audioContext.state !== 'running') {
+                // Attempt to resume if suspended, might happen if interaction was missed
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                // Don't play if context not running or buffer invalid
+                return;
+            }
+            try {
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.playbackRate.value = 1 - (Math.random() * 0.05);
+
+                source.connect(audioContext.destination);
+                source.start(0); // Play immediately
+            } catch (error) {
+                console.error("Error playing sound:", error);
+            }
+        }
+
+        // --- Game Logic ---
+        function formatSticking(pattern) {
+            // Improved formatting for readability
+            const chunkSize = (pattern.length === 12) ? 6 : 4;
+            let formatted = '';
+            for (let i = 0; i < pattern.length; i += chunkSize) {
+                formatted += pattern.substring(i, i + chunkSize) + ' ';
+            }
+            return formatted.trim();
+        }
+
+        function loadRudiment(index) {
+            const previousRudiment = rudiments[index - 1] || null;
+            const currentRudiment = rudiments[index];
+            const nextRudiment = rudiments[index + 1] || null;
+
+            // Remove timer start from here - it will start on first player input instead
+
+            if (!currentRudiment) {
+                completeGame(); // End game when no more rudiments
+                return;
+            }
+
+            currentRudimentIndex = index;
+            currentPattern = currentRudiment.pattern;
+            expectedInput = currentPattern;
+            requiredRepetitions = 1;
+            correctRepetitions = 0;
+            playerInput = '';
+
+            rudimentNameEl.textContent = `${index + 1}. ${currentRudiment.name}`;
+            updateStickingDisplay();
+            repetitionsNeededEl.textContent = requiredRepetitions;
+
+            feedbackEl.textContent = 'Tap Pad or Press Key to start...';
+            feedbackEl.style.color = '#555'; // Reset feedback color
+            resetPadStyles();
+
+            // Ensure pads are visible if hidden previously
+            if (document.getElementById('drum-pads').style.display === 'none') {
+                document.getElementById('drum-pads').style.display = 'flex';
+                addInputListeners(); // Re-add listeners if game was completed before
+            }
+        }
+
+        function resetPadStyles(pad = null) {
+            const pads = pad ? [pad] : [leftPadEl, rightPadEl];
+            pads.forEach(p => {
+                p.classList.remove('active', 'correct', 'incorrect', 'highlight');
+                // Restore original background color based on ID
+                if (p.id === 'left-pad') p.style.backgroundColor = '#4CAF50'; // Green
+                if (p.id === 'right-pad') p.style.backgroundColor = '#2196F3'; // Blue
+            });
+        }
+
+        function flashPad(key, styleClass = 'active', duration = 150) {
+            const pad = (key === 'd') ? leftPadEl : rightPadEl;
+            if (pad) {
+                resetPadStyles(pad); // Reset specific pad first
+                pad.classList.add(styleClass);
+                setTimeout(() => {
+                    // Only remove the specific class, keep correct/incorrect background
+                    pad.classList.remove(styleClass);
+                    if (styleClass !== 'correct' && styleClass !== 'incorrect') {
+                        resetPadStyles(pad); // Fully reset if just active/highlight
+                    }
+                }, duration);
+            }
+        }
+
+        function highlightPad(key, duration = 500) {
+            const pad = (key === 'd') ? leftPadEl : rightPadEl;
+            if (pad) {
+                pad.classList.add('highlight');
+                setTimeout(() => pad.classList.remove('highlight'), duration - 50);
+            }
+        }
+
+        // Refactored input processing logic
+        function processInput(key) {
+            initAudio(); // Ensure audio is ready on first interaction
+
+            if (key !== 'd' && key !== 'k') {
+                return; // Ignore input if not D/K (removed demo check)
+            }
+
+            if (!startTime) {
+                startTimer(); // Start the timer when the player begins playing
+            }
+
+            if (playerInput.length >= expectedInput.length) {
+                return; // Sequence already complete for this rep
+            }
+
+            const expectedNote = expectedInput[playerInput.length]; // 'R' or 'L'
+            const expectedKey = (expectedNote === 'L') ? 'd' : 'k';
+            const hand = (key === 'd') ? 'L' : 'R';
+            const soundBuffer = (key === 'd') ? leftSoundBuffer : rightSoundBuffer;
+
+            playSound(soundBuffer); // Play sound for the pad hit
+
+            if (key === expectedKey) {
+                // Correct input
+                playerInput += hand;
+                feedbackEl.textContent = 'Correct!';
+                feedbackEl.style.color = 'green';
+                flashPad(key, 'correct', 200);
+
+                // Update the sticking pattern display to highlight next note
+                updateStickingDisplay();
+
+                if (playerInput.length === expectedInput.length) {
+                    correctRepetitions++;
+                    playerInput = '';
+
+                    if (correctRepetitions >= requiredRepetitions) {
+                        feedbackEl.textContent = `Level Complete! Next pattern loaded.`;
+                        feedbackEl.style.color = '#3f51b5'; // Indigo
+                        loadRudiment(currentRudimentIndex + 1); // Load next pattern immediately
+                    } else {
+                        const remaining = requiredRepetitions - correctRepetitions;
+                        feedbackEl.textContent = `Nice! ${remaining} more time${remaining > 1 ? 's' : ''}.`;
+                        feedbackEl.style.color = 'green';
+                    }
+                }
+            } else {
+                // Incorrect input
+                feedbackEl.textContent = `Wrong! Expected ${expectedNote} (${expectedKey.toUpperCase()}). Resetting sequence.`;
+                feedbackEl.style.color = 'red';
+                flashPad(key, 'incorrect', 300); // Flash the pad they hit red
+                playerInput = ''; // Reset current input
+                correctRepetitions = 0; // Reset progress on error
+                updateStickingDisplay(); // Also update after error
+            }
+        }
+
+        function updateStickingDisplay() {
+            // Format and display sticking pattern with next note highlighted
+            const fullPattern = formatSticking(currentPattern, requiredRepetitions);
+            let displayHtml = '';
+
+            // Find which position in the pattern the player is at
+            const positionInPattern = playerInput.length % currentPattern.length;
+
+            // Track both actual character position and pattern position
+            let charCount = 0;
+            let letterCount = 0;
+            let highlightApplied = false;
+
+            // Build HTML with highlighting
+            for (let i = 0; i < fullPattern.length; i++) {
+                const char = fullPattern[i];
+
+                // Skip spaces when counting meaningful positions
+                if (char === ' ') {
+                    displayHtml += char;
+                    continue;
+                }
+
+                // Only apply highlight to the first matching position
+                if (!highlightApplied && letterCount === positionInPattern && (char === 'R' || char === 'L')) {
+                    displayHtml += `<span class="next-letter">${char}</span>`;
+                    highlightApplied = true;
+                } else {
+                    displayHtml += char;
+                }
+
+                // Only increment letter count for actual R and L characters
+                if (char === 'R' || char === 'L') {
+                    letterCount = (letterCount + 1) % currentPattern.length;
+                }
+            }
+
+            stickingPatternEl.innerHTML = displayHtml;
+        }
+
+        // --- Event Listener Setup ---
+        function handleKeyPress(event) {
+            const key = event.key.toLowerCase();
+            processInput(key);
+        }
+
+        function handlePadTap(event) {
+            event.preventDefault(); // Prevent default touch behavior (like scrolling or zoom)
+            const padId = event.currentTarget.id; // Use currentTarget to ensure it's the element listener was attached to
+            const key = (padId === 'left-pad') ? 'd' : 'k';
+            processInput(key);
+        }
+
+        function addInputListeners() {
+            document.addEventListener('keydown', handleKeyPress);
+            leftPadEl.addEventListener('touchstart', handlePadTap, { passive: false }); // Use touchstart for mobile responsiveness
+            rightPadEl.addEventListener('touchstart', handlePadTap, { passive: false });
+            // Add click listeners as a fallback or for desktop interaction with pads
+            leftPadEl.addEventListener('mousedown', handlePadTap); // mousedown often feels faster than click
+            rightPadEl.addEventListener('mousedown', handlePadTap);
+        }
+
+        function removeInputListeners() {
+            document.removeEventListener('keydown', handleKeyPress);
+            leftPadEl.removeEventListener('touchstart', handlePadTap);
+            rightPadEl.removeEventListener('touchstart', handlePadTap);
+            leftPadEl.removeEventListener('mousedown', handlePadTap);
+            rightPadEl.removeEventListener('mousedown', handlePadTap);
+        }
+
+        let startTime = null;
+        let timerInterval = null;
+
+        function startTimer() {
+            startTime = performance.now();
+            timerInterval = setInterval(updateTimerDisplay, 100);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function getElapsedTime() {
+            if (!startTime) return 0;
+            return performance.now() - startTime;
+        }
+
+        function updateTimerDisplay() {
+            const elapsedTime = getElapsedTime();
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = `Time: ${(elapsedTime / 1000).toFixed(3)}s`;
+        }
+
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+        }
+
+        function getCookie(name) {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [key, value] = cookie.trim().split('=');
+                if (key === name) return value;
+            }
+            return null;
+        }
+
+        function loadHighScore() {
+            const highScore = getCookie('highScore');
+            return highScore ? parseFloat(highScore) : null;
+        }
+
+        function saveHighScore(time) {
+            const highScore = loadHighScore();
+            if (highScore === null || time < highScore) {
+                setCookie('highScore', time, 180); // Save for 6 months
+                return time;
+            }
+            return highScore;
+        }
+
+        function displayHighScore() {
+            const highScore = loadHighScore();
+            const highScoreEl = document.getElementById('high-score');
+            highScoreEl.textContent = highScore ? `Record: ${(highScore / 1000).toFixed(3)}s` : 'Record: None';
+
+            if (highScore) {
+                document.getElementById('reset-record').style.display = 'block';
+            } else {
+                document.getElementById('reset-record').style.display = 'none';
+            }
+        }
+
+        function completeGame() {
+            stopTimer();
+            const elapsedTime = getElapsedTime();
+            const highScore = saveHighScore(elapsedTime);
+
+            document.getElementById('controls').style.display = 'none';
+
+            feedbackEl.textContent = `Game Complete! Time: ${(elapsedTime / 1000).toFixed(3)}s. Record: ${(highScore / 1000).toFixed(3)}s`;
+            feedbackEl.style.color = '#3f51b5'; // Indigo
+
+            // Check if Play Again button already exists
+            let playAgainBtn = document.getElementById('play-again-button');
+
+            // Only create a new button if one doesn't exist already
+            if (!playAgainBtn) {
+                playAgainBtn = document.createElement('button');
+                playAgainBtn.id = 'play-again-button';
+                playAgainBtn.textContent = 'Play Again';
+                playAgainBtn.style.padding = '10px 20px';
+                playAgainBtn.style.fontSize = '1em';
+                playAgainBtn.style.backgroundColor = '#4CAF50'; // Green
+                playAgainBtn.style.color = 'white';
+                playAgainBtn.style.border = 'none';
+                playAgainBtn.style.borderRadius = '5px';
+                playAgainBtn.style.cursor = 'pointer';
+                playAgainBtn.style.marginTop = '20px';
+                playAgainBtn.addEventListener('click', resetGame);
+
+                document.getElementById('game-container').appendChild(playAgainBtn);
+            } else {
+                // If button already exists, make sure it's visible
+                playAgainBtn.style.display = 'inline-block';
+            }
+        }
+
+        function resetGame() {
+            // Hide Play Again button
+            const playAgainBtn = document.getElementById('play-again-button');
+            if (playAgainBtn) {
+                playAgainBtn.remove();
+            }
+
+            // Reset game state variables
+            currentRudimentIndex = 0;
+            startTime = null;
+            playerInput = '';
+            correctRepetitions = 0;
+
+            displayHighScore();
+            document.getElementById('controls').style.display = 'block';
+            document.getElementById('timer').innerHTML = 'Time: 0.000s';
+            feedbackEl.textContent = '';
+
+            // Load first rudiment
+            loadRudiment(0);
+        }
+
+        function resetHighScore() {
+            if (confirm('Are you sure you want to reset your record?')) {
+                setCookie('highScore', '', -1); // Set cookie to expire immediately
+                displayHighScore();
+            }
+        }
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const timerEl = document.createElement('div');
+            timerEl.id = 'timer';
+            timerEl.style.marginTop = '10px';
+            timerEl.style.fontSize = '1.2em';
+            timerEl.style.color = '#333';
+            document.getElementById('controls').appendChild(timerEl);
+
+            const highScoreEl = document.createElement('div');
+            highScoreEl.id = 'high-score';
+            highScoreEl.style.marginTop = '5px';
+            highScoreEl.style.fontSize = '1em';
+            highScoreEl.style.color = '#555';
+            document.getElementById('controls').appendChild(highScoreEl);
+
+            displayHighScore();
+
+            // Add event listener for reset record button
+            document.getElementById('reset-record').addEventListener('click', resetHighScore);
+        });
+
+        addInputListeners();
+        loadRudiment(0); // Load the first rudiment when script runs
+
+        // Call initAudio once, possibly deferred or on first interaction if strict guarantees needed
+        // Calling it here attempts early load, but resume logic handles browser policies.
+        initAudio();
+
+    </script>
+</body>
+
+</html>
