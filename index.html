@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Rudiment Rhythm Game</title>
+    <title>Drum Champ</title>
     <style>
         /* Basic Reset & Body Styling */
         * {
@@ -319,7 +319,7 @@
 
 <body>
     <div id="game-container">
-        <h1>Drum Rudiment Trainer</h1>
+        <h1>Drum Champ</h1>
 
         <div id="controls">
             <div id="instructions">
@@ -327,8 +327,8 @@
                 Complete all patterns the fastest to set the record!
             </div>
 
-            <div id="rudiment-name">Paradiddle</div>
-            <div id="sticking-pattern">R L R R L R L L</div>
+            <div id="rudiment-name"></div>
+            <div id="sticking-pattern"></div>
 
             <div id="drum-pads">
                 <div class="pad" id="left-pad">L<span>(D key)</span></div>
@@ -343,17 +343,17 @@
     <script>
         const rudiments = [
             { name: "Single Stroke", pattern: "RLRLRLRL" },
-            { name: "Single Stroke", pattern: "LRLRLRLR" },
-            { name: "Double Stroke", pattern: "RRLLRRLL" },
-            { name: "Double Stroke", pattern: "LLRRLLRR" },
-            { name: "Paradiddle", pattern: "RLRRLRLL" },
-            { name: "Paradiddle", pattern: "LRRLRLLR" },
-            { name: "Paradiddle", pattern: "RRLRLLRL" },
-            { name: "Paradiddle", pattern: "RLRLLRLR" },
-            { name: "Paradiddle", pattern: "LRLLRLRR" },
-            { name: "Paradiddle", pattern: "RLLRLRRL" },
-            { name: "Paradiddle", pattern: "LLRLRRLR" },
-            { name: "Paradiddle", pattern: "LRLRRLRL" },
+            // { name: "Single Stroke", pattern: "LRLRLRLR" },
+            // { name: "Double Stroke", pattern: "RRLLRRLL" },
+            // { name: "Double Stroke", pattern: "LLRRLLRR" },
+            // { name: "Paradiddle", pattern: "RLRRLRLL" },
+            // { name: "Paradiddle", pattern: "LRRLRLLR" },
+            // { name: "Paradiddle", pattern: "RRLRLLRL" },
+            // { name: "Paradiddle", pattern: "RLRLLRLR" },
+            // { name: "Paradiddle", pattern: "LRLLRLRR" },
+            // { name: "Paradiddle", pattern: "RLLRLRRL" },
+            // { name: "Paradiddle", pattern: "LLRLRRLR" },
+            // { name: "Paradiddle", pattern: "LRLRRLRL" },
         ];
         for (const rud of rudiments) {
             rud.pattern = `${rud.pattern}${rud.pattern}`;
@@ -724,7 +724,7 @@
         function displayHighScore() {
             const highScore = loadHighScore();
             const highScoreEl = document.getElementById('high-score');
-            highScoreEl.textContent = highScore ? `Record: ${(highScore / 1000).toFixed(3)}s` : 'Record: None';
+            highScoreEl.textContent = highScore ? `Record: ${(highScore / 1000).toFixed(3)}s` : '';
 
             if (highScore) {
                 document.getElementById('reset-record').style.display = 'block';
@@ -740,7 +740,7 @@
 
             document.getElementById('controls').style.display = 'none';
 
-            feedbackEl.textContent = `Game Complete! Time: ${(elapsedTime / 1000).toFixed(3)}s. Record: ${(highScore / 1000).toFixed(3)}s`;
+            feedbackEl.innerHTML = `Game Complete!<br>Time: ${(elapsedTime / 1000).toFixed(3)}s.<br>Record: ${(highScore / 1000).toFixed(3)}s`;
             feedbackEl.style.color = '#3f51b5'; // Indigo
 
             // Check if Play Again button already exists
@@ -784,7 +784,7 @@
             displayHighScore();
             document.getElementById('controls').style.display = 'block';
             document.getElementById('timer').innerHTML = 'Time: 0.000s';
-            feedbackEl.textContent = '';
+            feedbackEl.textContent = 'Tap Pad or Press Key to start...';
 
             // Load first rudiment
             loadRudiment(0);
