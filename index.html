@@ -368,7 +368,6 @@
         let audioContext;
         let leftSoundBuffer;
         let rightSoundBuffer;
-        let crashSoundBuffer; // New buffer for crash cymbal sound
         let soundInitialized = false;
         let soundBufferCache = {}; // Cache for storing loaded sound buffers
         let fillSoundBuffer; // For the fill sound at game completion
@@ -412,9 +411,7 @@
                 document.addEventListener('keydown', resumeAudio);
                 document.addEventListener('touchstart', resumeAudio);
 
-                loadSound('left.wav').then(buffer => leftSoundBuffer = buffer).catch(e => console.error("Error loading left sound:", e));
-                loadSound('right.wav').then(buffer => rightSoundBuffer = buffer).catch(e => console.error("Error loading right sound:", e));
-                loadSound('crash.wav').then(buffer => crashSoundBuffer = buffer).catch(e => console.error("Error loading crash sound:", e));
+                loadSound('samples/snare.mp3').then(buffer => leftSoundBuffer = rightSoundBuffer = buffer).catch(e => console.error("Error loading snare sound:", e));
                 loadSound('samples/fill.mp3').then(buffer => fillSoundBuffer = buffer).catch(e => console.error("Error loading fill sound:", e));
                 loadSound('samples/beat.mp3').then(buffer => beatSoundBuffer = buffer).catch(e => console.error("Error loading beat sound:", e));
 
@@ -469,7 +466,7 @@
             try {
                 const source = audioContext.createBufferSource();
                 source.buffer = buffer;
-                source.playbackRate.value = 1 - (Math.random() * 0.05);
+                source.playbackRate.value = 1 - (Math.random() * 0.06);
 
                 source.connect(audioContext.destination);
                 source.start(0); // Play immediately
@@ -480,9 +477,7 @@
 
         // Function to play completion sound based on rudiment sound property
         async function playCompleteSound(soundFile) {
-            // If no specific sound file is provided, use the default crash sound
             if (!soundFile) {
-                playSound(crashSoundBuffer);
                 return;
             }
 
@@ -493,12 +488,10 @@
                     playSound(buffer);
                 } else {
                     // Fallback to default crash sound if loading fails
-                    console.warn(`Failed to load ${soundFile}, using default crash sound`);
-                    playSound(crashSoundBuffer);
+                    console.warn(`Failed to load ${soundFile}`);
                 }
             } catch (error) {
                 console.error("Error playing rudiment sound:", error);
-                playSound(crashSoundBuffer); // Fallback
             }
         }
 
