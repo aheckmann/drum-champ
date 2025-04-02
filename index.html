@@ -344,16 +344,16 @@
         const rudiments = [
             { name: "Single Stroke", pattern: "RLRLRLRL", sound: "samples/crash-1.mp3" },
             { name: "Single Stroke", pattern: "LRLRLRLR", sound: "samples/crash-2.mp3" },
-            { name: "Double Stroke", pattern: "RRLLRRLL" , sound: "samples/crash-2.mp3" },
-            { name: "Double Stroke", pattern: "LLRRLLRR" , sound: "samples/crash-3.mp3" },
-            { name: "Paradiddle", pattern: "RLRRLRLL" , sound: "samples/crash-4.mp3" },
-            { name: "Paradiddle", pattern: "LRRLRLLR" , sound: "samples/crash-3.mp3" },
-            { name: "Paradiddle", pattern: "RRLRLLRL" , sound: "samples/crash-4.mp3" },
-            { name: "Paradiddle", pattern: "RLRLLRLR" , sound: "samples/crash-5.mp3" },
-            { name: "Paradiddle", pattern: "LRLLRLRR" , sound: "samples/crash-4.mp3" },
-            { name: "Paradiddle", pattern: "RLLRLRRL" , sound: "samples/crash-5.mp3" },
-            { name: "Paradiddle", pattern: "LLRLRRLR" , sound: "samples/crash-6.mp3" },
-            { name: "Paradiddle", pattern: "LRLRRLRL" , sound: "samples/crash-7.mp3" },
+            { name: "Double Stroke", pattern: "RRLLRRLL", sound: "samples/crash-2.mp3" },
+            { name: "Double Stroke", pattern: "LLRRLLRR", sound: "samples/crash-3.mp3" },
+            { name: "Paradiddle", pattern: "RLRRLRLL", sound: "samples/crash-4.mp3" },
+            { name: "Paradiddle", pattern: "LRRLRLLR", sound: "samples/crash-3.mp3" },
+            { name: "Paradiddle", pattern: "RRLRLLRL", sound: "samples/crash-4.mp3" },
+            { name: "Paradiddle", pattern: "RLRLLRLR", sound: "samples/crash-5.mp3" },
+            { name: "Paradiddle", pattern: "LRLLRLRR", sound: "samples/crash-4.mp3" },
+            { name: "Paradiddle", pattern: "RLLRLRRL", sound: "samples/crash-5.mp3" },
+            { name: "Paradiddle", pattern: "LLRLRRLR", sound: "samples/crash-6.mp3" },
+            { name: "Paradiddle", pattern: "LRLRRLRL", sound: "samples/crash-7.mp3" },
         ];
         for (const rud of rudiments) {
             rud.pattern = `${rud.pattern}${rud.pattern}`;
@@ -371,6 +371,9 @@
         let crashSoundBuffer; // New buffer for crash cymbal sound
         let soundInitialized = false;
         let soundBufferCache = {}; // Cache for storing loaded sound buffers
+        let fillSoundBuffer; // For the fill sound at game completion
+        let beatSoundBuffer; // For the looping beat sound
+        let beatLoopSource; // To track the looping beat sound source
 
         // --- DOM Elements ---
         const rudimentNameEl = document.getElementById('rudiment-name');
@@ -412,6 +415,8 @@
                 loadSound('left.wav').then(buffer => leftSoundBuffer = buffer).catch(e => console.error("Error loading left sound:", e));
                 loadSound('right.wav').then(buffer => rightSoundBuffer = buffer).catch(e => console.error("Error loading right sound:", e));
                 loadSound('crash.wav').then(buffer => crashSoundBuffer = buffer).catch(e => console.error("Error loading crash sound:", e));
+                loadSound('samples/fill.mp3').then(buffer => fillSoundBuffer = buffer).catch(e => console.error("Error loading fill sound:", e));
+                loadSound('samples/beat.mp3').then(buffer => beatSoundBuffer = buffer).catch(e => console.error("Error loading beat sound:", e));
 
                 soundInitialized = true;
                 console.log("Audio initialized.");
@@ -494,6 +499,61 @@
             } catch (error) {
                 console.error("Error playing rudiment sound:", error);
                 playSound(crashSoundBuffer); // Fallback
+            }
+        }
+
+        // Function to play the fill sound when game completes
+        function playFillSound(onComplete) {
+            if (!audioContext || !fillSoundBuffer || audioContext.state !== 'running') {
+                if (onComplete) onComplete(); // Call completion callback immediately if we can't play
+                return;
+            }
+
+            try {
+                const source = audioContext.createBufferSource();
+                source.buffer = fillSoundBuffer;
+                source.connect(audioContext.destination);
+
+                if (onComplete) {
+                    source.onended = onComplete; // Execute callback when sound finishes
+                }
+
+                source.start(0); // Play immediately
+            } catch (error) {
+                console.error("Error playing fill sound:", error);
+                if (onComplete) onComplete(); // Ensure callback runs even if error
+            }
+        }
+
+        // Function to play beat in a loop
+        function playBeatLoop() {
+            if (!audioContext || !beatSoundBuffer || audioContext.state !== 'running') {
+                return;
+            }
+
+            try {
+                // Stop any existing beat loop
+                stopBeatLoop();
+
+                beatLoopSource = audioContext.createBufferSource();
+                beatLoopSource.buffer = beatSoundBuffer;
+                beatLoopSource.loop = true; // Enable looping
+                beatLoopSource.connect(audioContext.destination);
+                beatLoopSource.start(0); // Play immediately
+            } catch (error) {
+                console.error("Error playing beat loop:", error);
+            }
+        }
+
+        // Function to stop the beat loop
+        function stopBeatLoop() {
+            if (beatLoopSource) {
+                try {
+                    beatLoopSource.stop();
+                } catch (e) {
+                    console.error("Error stopping beat loop:", e);
+                }
+                beatLoopSource = null;
             }
         }
 
@@ -782,8 +842,10 @@
 
             document.getElementById('controls').style.display = 'none';
 
-            // Play crash cymbal for game completion (using default sound)
-            playCompleteSound();
+            // Play fill sound, then start beat loop when it completes
+            playFillSound(() => {
+                playBeatLoop();
+            });
 
             feedbackEl.innerHTML = `Game Complete!<br>Time: ${(elapsedTime / 1000).toFixed(3)}s.<br>Record: ${(highScore / 1000).toFixed(3)}s`;
             feedbackEl.style.color = '#3f51b5'; // Indigo
@@ -814,6 +876,9 @@
         }
 
         function resetGame() {
+            // Stop any playing beat loop
+            stopBeatLoop();
+
             // Hide Play Again button
             const playAgainBtn = document.getElementById('play-again-button');
             if (playAgainBtn) {
