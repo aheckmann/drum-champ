@@ -314,6 +314,23 @@
         #reset-record:hover {
             opacity: 1;
         }
+
+        /* Styling for the upcoming rudiment */
+        #upcoming-rudiment {
+            font-size: 1.2em;
+            color: #888;
+            margin-top: 10px;
+            transform: rotateX(30deg);
+            /* Simulate slot machine tilt */
+            text-align: center;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 10px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 300px;
+        }
     </style>
 </head>
 
@@ -329,6 +346,7 @@
 
             <div id="rudiment-name"></div>
             <div id="sticking-pattern"></div>
+            <div id="upcoming-rudiment">ih</div>
 
             <div id="drum-pads">
                 <div class="pad" id="left-pad">L<span>(D key)</span></div>
@@ -383,7 +401,6 @@
         const rightPadEl = document.getElementById('right-pad');
         const feedbackEl = document.getElementById('feedback');
         const currentPatternEl = document.getElementById('current-pattern');
-        const upcomingPatternEl = document.getElementById('upcoming-pattern');
 
         // --- Audio Setup ---
         function initAudio() {
@@ -561,6 +578,17 @@
             return formatted.trim();
         }
 
+        function updateUpcomingRudiment(index) {
+            const nextRudiment = rudiments[index + 1] || null;
+            const upcomingRudimentEl = document.getElementById('upcoming-rudiment');
+
+            if (nextRudiment) {
+                upcomingRudimentEl.textContent = formatSticking(nextRudiment.pattern, requiredRepetitions);
+            } else {
+                upcomingRudimentEl.textContent = ' '.repeat(20);;
+            }
+        }
+
         function loadRudiment(index) {
             const previousRudiment = rudiments[index - 1] || null;
             const currentRudiment = rudiments[index];
@@ -582,6 +610,7 @@
 
             rudimentNameEl.textContent = `${index + 1}. ${currentRudiment.name}`;
             updateStickingDisplay();
+            updateUpcomingRudiment(index);
             repetitionsNeededEl.textContent = requiredRepetitions;
 
             feedbackEl.textContent = 'Tap Pad or Press Key to start...';
@@ -593,6 +622,7 @@
                 document.getElementById('drum-pads').style.display = 'flex';
                 addInputListeners(); // Re-add listeners if game was completed before
             }
+
         }
 
         function resetPadStyles(pad = null) {
