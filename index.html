@@ -82,36 +82,143 @@
 
         #rudiment-name {
             font-size: 1.6em;
-            /* Relative font size */
             font-weight: bold;
             color: #607d8b;
-            /* Blue Grey */
             margin-bottom: 5px;
         }
 
-        #sticking-pattern {
+        /* Slot Machine Style for Rudiment Display */
+        .slot-machine-container {
+            position: relative;
+            margin: 15px auto;
+            padding: 5px 0;
+            perspective: 500px;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: linear-gradient(180deg, #333, #111);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3),
+                inset 0 2px 5px rgba(255, 255, 255, 0.3);
+            border: 2px solid #444;
+        }
+
+        .slot-machine-window {
+            background-color: #f5f5dc;
+            /* Beige background */
+            border-radius: 5px;
+            margin: 8px;
+            overflow: hidden;
+            height: 120px;
+            /* Height for both patterns */
+            position: relative;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .slot-machine-roll {
+            position: relative;
+            transform-style: preserve-3d;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            transform: rotateX(5deg);
+            /* Slight tilt for 3D effect */
+        }
+
+        /* Pattern divider */
+        .pattern-divider {
+            width: 95%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.3), transparent);
+            margin: 0;
+            position: relative;
+        }
+
+        /* Common styling for both patterns */
+        .pattern-display {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 1.4em;
-            /* Relative font size */
-            color: #009688;
-            /* Teal */
-            margin-bottom: 15px;
+            width: 100%;
+            text-align: center;
             letter-spacing: 2px;
             word-wrap: break-word;
-            /* Ensure long patterns wrap */
+            transform-style: preserve-3d;
+            background: transparent;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
         }
 
-        #instructions {
-            margin-bottom: 20px;
-            font-size: 1em;
-            /* Relative font size */
+        .pattern-display {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
             color: #555;
-            line-height: 1.4;
+            background-color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            word-wrap: break-word;
+            min-height: 40px;
+            text-align: center;
+            line-height: 40px;
+            /* Match min-height for vertical centering */
+            position: relative;
+            /* Needed for 3D transforms */
         }
 
-        #instructions strong {
-            color: #ff9800;
-            /* Orange */
+        #sticking-pattern {
+            font-size: 1.6em;
+            color: #333;
+            transform: rotateX(10deg);
+            flex: 1;
+            font-weight: bold;
+        }
+
+        #upcoming-rudiment {
+            font-size: 1.2em;
+            color: #888;
+            transform: rotateX(30deg);
+            /* More tilt for the upcoming pattern */
+            flex: 1;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Slot machine light effect */
+        .slot-machine-container:before,
+        .slot-machine-container:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 5px;
+            z-index: 1;
+        }
+
+        .slot-machine-container:before {
+            top: 0;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
+        }
+
+        .slot-machine-container:after {
+            bottom: 0;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.2), transparent);
+        }
+
+        /* Enhance next letter highlighting in slot machine context */
+        .next-letter {
+            display: inline-block;
+            background-color: yellow;
+            color: #333;
+            padding: 0 4px;
+            border-radius: 3px;
+            box-shadow: 0 0 8px rgba(255, 255, 0, 0.6);
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+            position: relative;
+            z-index: 2;
         }
 
         /* Drum Pads Area */
@@ -256,9 +363,11 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             word-wrap: break-word;
             min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            text-align: center;
+            line-height: 40px;
+            /* Match min-height for vertical centering */
+            position: relative;
+            /* Needed for 3D transforms */
         }
 
         /* Add disabled state for pads */
@@ -331,6 +440,44 @@
             width: 80%;
             max-width: 300px;
         }
+
+        @keyframes rollUpdate {
+            0% {
+                transform: translateY(-5px) rotateX(5deg);
+            }
+
+            15% {
+                transform: translateY(15px) rotateX(5deg);
+            }
+
+            30% {
+                transform: translateY(0) rotateX(5deg);
+            }
+
+            100% {
+                transform: translateY(0) rotateX(5deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0.4;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translateY(-100%) rotateX(5deg);
+            }
+
+            100% {
+                transform: translateY(0) rotateX(5deg);
+            }
+        }
     </style>
 </head>
 
@@ -345,8 +492,17 @@
             </div>
 
             <div id="rudiment-name"></div>
-            <div id="sticking-pattern"></div>
-            <div id="upcoming-rudiment">ih</div>
+
+            <!-- Slot machine container for both patterns -->
+            <div class="slot-machine-container">
+                <div class="slot-machine-window">
+                    <div class="slot-machine-roll">
+                        <div id="sticking-pattern" class="pattern-display"></div>
+                        <div class="pattern-divider"></div>
+                        <div id="upcoming-rudiment" class="pattern-display">Next pattern</div>
+                    </div>
+                </div>
+            </div>
 
             <div id="drum-pads">
                 <div class="pad" id="left-pad">L<span>(D key)</span></div>
@@ -362,16 +518,16 @@
         const rudiments = [
             { name: "Single Stroke", pattern: "RLRLRLRL", sound: "samples/crash-1.mp3" },
             { name: "Single Stroke", pattern: "LRLRLRLR", sound: "samples/crash-2.mp3" },
-            { name: "Double Stroke", pattern: "RRLLRRLL", sound: "samples/crash-2.mp3" },
-            { name: "Double Stroke", pattern: "LLRRLLRR", sound: "samples/crash-3.mp3" },
-            { name: "Paradiddle", pattern: "RLRRLRLL", sound: "samples/crash-4.mp3" },
-            { name: "Paradiddle", pattern: "LRRLRLLR", sound: "samples/crash-3.mp3" },
-            { name: "Paradiddle", pattern: "RRLRLLRL", sound: "samples/crash-4.mp3" },
-            { name: "Paradiddle", pattern: "RLRLLRLR", sound: "samples/crash-5.mp3" },
-            { name: "Paradiddle", pattern: "LRLLRLRR", sound: "samples/crash-4.mp3" },
-            { name: "Paradiddle", pattern: "RLLRLRRL", sound: "samples/crash-5.mp3" },
-            { name: "Paradiddle", pattern: "LLRLRRLR", sound: "samples/crash-6.mp3" },
-            { name: "Paradiddle", pattern: "LRLRRLRL", sound: "samples/crash-7.mp3" },
+            // { name: "Double Stroke", pattern: "RRLLRRLL", sound: "samples/crash-2.mp3" },
+            // { name: "Double Stroke", pattern: "LLRRLLRR", sound: "samples/crash-3.mp3" },
+            // { name: "Paradiddle", pattern: "RLRRLRLL", sound: "samples/crash-4.mp3" },
+            // { name: "Paradiddle", pattern: "LRRLRLLR", sound: "samples/crash-3.mp3" },
+            // { name: "Paradiddle", pattern: "RRLRLLRL", sound: "samples/crash-4.mp3" },
+            // { name: "Paradiddle", pattern: "RLRLLRLR", sound: "samples/crash-5.mp3" },
+            // { name: "Paradiddle", pattern: "LRLLRLRR", sound: "samples/crash-4.mp3" },
+            // { name: "Paradiddle", pattern: "RLLRLRRL", sound: "samples/crash-5.mp3" },
+            // { name: "Paradiddle", pattern: "LLRLRRLR", sound: "samples/crash-6.mp3" },
+            // { name: "Paradiddle", pattern: "LRLRRLRL", sound: "samples/crash-7.mp3" },
         ];
         for (const rud of rudiments) {
             rud.pattern = `${rud.pattern}${rud.pattern}`;
@@ -401,6 +557,11 @@
         const rightPadEl = document.getElementById('right-pad');
         const feedbackEl = document.getElementById('feedback');
         const currentPatternEl = document.getElementById('current-pattern');
+
+        // Add missing global variables
+        let startTime = null;
+        let timerInterval = null;
+        let timerEl, highScoreEl;
 
         // --- Audio Setup ---
         function initAudio() {
@@ -569,8 +730,8 @@
 
         // --- Game Logic ---
         function formatSticking(pattern) {
-            // Improved formatting for readability
-            const chunkSize = (pattern.length === 12) ? 6 : 4;
+            // Always use consistent groups of four letters
+            const chunkSize = 4;
             let formatted = '';
             for (let i = 0; i < pattern.length; i += chunkSize) {
                 formatted += pattern.substring(i, i + chunkSize) + ' ';
@@ -583,10 +744,35 @@
             const upcomingRudimentEl = document.getElementById('upcoming-rudiment');
 
             if (nextRudiment) {
-                upcomingRudimentEl.textContent = formatSticking(nextRudiment.pattern, requiredRepetitions);
+                upcomingRudimentEl.textContent = formatSticking(nextRudiment.pattern);
+                upcomingRudimentEl.style.color = '#777'; // Slightly more visible color
+                upcomingRudimentEl.style.opacity = '0.8';
             } else {
-                upcomingRudimentEl.textContent = ' '.repeat(20);;
+                upcomingRudimentEl.textContent = 'Final Pattern!';
+                upcomingRudimentEl.style.color = '#999';
+                upcomingRudimentEl.style.opacity = '0.6';
             }
+
+            // Add roll animation when updating
+            const slotRoll = document.querySelector('.slot-machine-roll');
+            slotRoll.style.animation = 'none';
+            setTimeout(() => {
+                slotRoll.style.animation = 'rollUpdate 0.5s ease-out';
+            }, 50);
+        }
+
+        // Add function to animate pattern change
+        function animatePatternChange() {
+            const slotRoll = document.querySelector('.slot-machine-roll');
+            slotRoll.style.animation = 'spin 0.8s ease-out';
+
+            // Add event listener for animation end
+            const onAnimationEnd = () => {
+                slotRoll.style.animation = '';
+                slotRoll.removeEventListener('animationend', onAnimationEnd);
+            };
+
+            slotRoll.addEventListener('animationend', onAnimationEnd);
         }
 
         function loadRudiment(index) {
@@ -601,6 +787,11 @@
                 return;
             }
 
+            // Add animation when changing patterns
+            if (index > 0) {
+                animatePatternChange();
+            }
+
             currentRudimentIndex = index;
             currentPattern = currentRudiment.pattern;
             expectedInput = currentPattern;
@@ -611,7 +802,10 @@
             rudimentNameEl.textContent = `${index + 1}. ${currentRudiment.name}`;
             updateStickingDisplay();
             updateUpcomingRudiment(index);
-            repetitionsNeededEl.textContent = requiredRepetitions;
+
+            if (repetitionsNeededEl) {
+                repetitionsNeededEl.textContent = requiredRepetitions;
+            }
 
             feedbackEl.textContent = 'Tap Pad or Press Key to start...';
             feedbackEl.style.color = '#555'; // Reset feedback color
@@ -622,7 +816,6 @@
                 document.getElementById('drum-pads').style.display = 'flex';
                 addInputListeners(); // Re-add listeners if game was completed before
             }
-
         }
 
         function resetPadStyles(pad = null) {
@@ -658,7 +851,6 @@
             }
         }
 
-        // Refactored input processing logic
         function processInput(key) {
             initAudio(); // Ensure audio is ready on first interaction
 
@@ -679,10 +871,9 @@
             const hand = (key === 'd') ? 'L' : 'R';
             const soundBuffer = (key === 'd') ? leftSoundBuffer : rightSoundBuffer;
 
-            playSound(soundBuffer); // Play sound for the pad hit
-
             if (key === expectedKey) {
                 // Correct input
+                playSound(soundBuffer); // Play sound for the pad hit
                 playerInput += hand;
                 feedbackEl.textContent = 'Correct!';
                 feedbackEl.style.color = 'green';
@@ -778,7 +969,6 @@
             document.addEventListener('keydown', handleKeyPress);
             leftPadEl.addEventListener('touchstart', handlePadTap, { passive: false }); // Use touchstart for mobile responsiveness
             rightPadEl.addEventListener('touchstart', handlePadTap, { passive: false });
-            // Add click listeners as a fallback or for desktop interaction with pads
             leftPadEl.addEventListener('mousedown', handlePadTap); // mousedown often feels faster than click
             rightPadEl.addEventListener('mousedown', handlePadTap);
         }
@@ -790,9 +980,6 @@
             leftPadEl.removeEventListener('mousedown', handlePadTap);
             rightPadEl.removeEventListener('mousedown', handlePadTap);
         }
-
-        let startTime = null;
-        let timerInterval = null;
 
         function startTimer() {
             startTime = performance.now();
@@ -813,8 +1000,12 @@
 
         function updateTimerDisplay() {
             const elapsedTime = getElapsedTime();
-            const timerEl = document.getElementById('timer');
-            timerEl.textContent = `Time: ${(elapsedTime / 1000).toFixed(3)}s`;
+            if (!timerEl) {
+                timerEl = document.getElementById('timer');
+            }
+            if (timerEl) {
+                timerEl.textContent = `Time: ${(elapsedTime / 1000).toFixed(3)}s`;
+            }
         }
 
         function setCookie(name, value, days) {
@@ -848,9 +1039,12 @@
 
         function displayHighScore() {
             const highScore = loadHighScore();
-            const highScoreEl = document.getElementById('high-score');
-            highScoreEl.textContent = highScore ? `Record: ${(highScore / 1000).toFixed(3)}s` : '';
-
+            if (!highScoreEl) {
+                highScoreEl = document.getElementById('high-score');
+            }
+            if (highScoreEl) {
+                highScoreEl.textContent = highScore ? `Record: ${(highScore / 1000).toFixed(3)}s` : '';
+            }
             if (highScore) {
                 document.getElementById('reset-record').style.display = 'block';
             } else {
@@ -863,6 +1057,7 @@
             const elapsedTime = getElapsedTime();
             const highScore = saveHighScore(elapsedTime);
 
+            // Hide the controls when game ends
             document.getElementById('controls').style.display = 'none';
 
             // Play fill sound, then start beat loop when it completes
@@ -875,7 +1070,6 @@
 
             // Check if Play Again button already exists
             let playAgainBtn = document.getElementById('play-again-button');
-
             // Only create a new button if one doesn't exist already
             if (!playAgainBtn) {
                 playAgainBtn = document.createElement('button');
@@ -890,7 +1084,6 @@
                 playAgainBtn.style.cursor = 'pointer';
                 playAgainBtn.style.marginTop = '20px';
                 playAgainBtn.addEventListener('click', resetGame);
-
                 document.getElementById('game-container').appendChild(playAgainBtn);
             } else {
                 // If button already exists, make sure it's visible
@@ -911,15 +1104,14 @@
             // Reset game state variables
             currentRudimentIndex = 0;
             startTime = null;
-            playerInput = '';
             correctRepetitions = 0;
+            playerInput = '';
 
             displayHighScore();
             document.getElementById('controls').style.display = 'block';
             document.getElementById('timer').innerHTML = 'Time: 0.000s';
             feedbackEl.textContent = 'Tap Pad or Press Key to start...';
 
-            // Load first rudiment
             loadRudiment(0);
         }
 
@@ -932,14 +1124,16 @@
 
         // --- Initial Load ---
         document.addEventListener('DOMContentLoaded', () => {
-            const timerEl = document.createElement('div');
+            // Create timer element
+            timerEl = document.createElement('div');
             timerEl.id = 'timer';
             timerEl.style.marginTop = '10px';
             timerEl.style.fontSize = '1.2em';
             timerEl.style.color = '#333';
             document.getElementById('controls').appendChild(timerEl);
 
-            const highScoreEl = document.createElement('div');
+            // Create high score element
+            highScoreEl = document.createElement('div');
             highScoreEl.id = 'high-score';
             highScoreEl.style.marginTop = '5px';
             highScoreEl.style.fontSize = '1em';
@@ -950,15 +1144,20 @@
 
             // Add event listener for reset record button
             document.getElementById('reset-record').addEventListener('click', resetHighScore);
+
+            // Ensure pad click listeners are attached
+            addInputListeners();
+
+            // Initialize the first rudiment
+            loadRudiment(0);
         });
 
+        // Make sure event listeners are attached immediately
         addInputListeners();
-        loadRudiment(0); // Load the first rudiment when script runs
 
         // Call initAudio once, possibly deferred or on first interaction if strict guarantees needed
         // Calling it here attempts early load, but resume logic handles browser policies.
         initAudio();
-
     </script>
 </body>
 
