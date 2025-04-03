@@ -68,13 +68,6 @@
             font-size: 1.8em;
         }
 
-        #rudiment-name {
-            font-size: 1.6em;
-            font-weight: bold;
-            color: #607d8b;
-            margin-bottom: 5px;
-        }
-
         :root {
             --num-facets: 12;
             --facet-height: 50px;
@@ -90,6 +83,7 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3),
                 inset 0 2px 5px rgba(255, 255, 255, 0.3);
             border: 2px solid #444;
+            margin-top: 10px;
         }
 
         .cylinder {
@@ -357,16 +351,6 @@
                 opacity: 1;
             }
         }
-
-        @keyframes spin {
-            0% {
-                transform: translateY(-100%) rotateX(5deg);
-            }
-
-            100% {
-                transform: translateY(0) rotateX(5deg);
-            }
-        }
     </style>
 </head>
 
@@ -379,8 +363,6 @@
                 Tap the pads or use keys: <strong>'K'</strong> for Right (R) and <strong>'D'</strong> for Left (L). <br>
                 Complete all patterns the fastest to set the record!
             </div>
-
-            <div id="rudiment-name"></div>
 
             <!-- Slot machine container for both patterns -->
             <div class="slot-machine-container">
@@ -407,18 +389,18 @@
 
     <script>
         const rudiments = [
-            { name: "Single Stroke", pattern: "RLRLRLRL", sound: "samples/crash-1.mp3" },
-            { name: "Single Stroke", pattern: "LRLRLRLR", sound: "samples/crash-2.mp3" },
-            { name: "Double Stroke", pattern: "RRLLRRLL", sound: "samples/crash-2.mp3" },
-            // { name: "Double Stroke", pattern: "LLRRLLRR", sound: "samples/crash-3.mp3" },
-            // { name: "Paradiddle", pattern: "RLRRLRLL", sound: "samples/crash-4.mp3" },
-            // { name: "Paradiddle", pattern: "LRRLRLLR", sound: "samples/crash-3.mp3" },
-            // { name: "Paradiddle", pattern: "RRLRLLRL", sound: "samples/crash-4.mp3" },
-            // { name: "Paradiddle", pattern: "RLRLLRLR", sound: "samples/crash-5.mp3" },
-            // { name: "Paradiddle", pattern: "LRLLRLRR", sound: "samples/crash-4.mp3" },
-            // { name: "Paradiddle", pattern: "RLLRLRRL", sound: "samples/crash-5.mp3" },
-            // { name: "Paradiddle", pattern: "LLRLRRLR", sound: "samples/crash-6.mp3" },
-            // { name: "Paradiddle", pattern: "LRLRRLRL", sound: "samples/crash-7.mp3" },
+            { pattern: "RLRLRLRL", sound: "samples/crash-1.mp3" },
+            { pattern: "LRLRLRLR", sound: "samples/crash-2.mp3" },
+            { pattern: "RRLLRRLL", sound: "samples/crash-2.mp3" },
+            { pattern: "LLRRLLRR", sound: "samples/crash-3.mp3" },
+            { pattern: "RLRRLRLL", sound: "samples/crash-4.mp3" },
+            { pattern: "LRRLRLLR", sound: "samples/crash-3.mp3" },
+            { pattern: "RRLRLLRL", sound: "samples/crash-4.mp3" },
+            { pattern: "RLRLLRLR", sound: "samples/crash-5.mp3" },
+            { pattern: "LRLLRLRR", sound: "samples/crash-4.mp3" },
+            { pattern: "RLLRLRRL", sound: "samples/crash-5.mp3" },
+            { pattern: "LLRLRRLR", sound: "samples/crash-6.mp3" },
+            { pattern: "LRLRRLRL", sound: "samples/crash-7.mp3" },
         ];
         for (const rud of rudiments) {
             rud.pattern = `${rud.pattern}${rud.pattern}`;
@@ -440,7 +422,6 @@
         let beatLoopSource; // To track the looping beat sound source
 
         // --- DOM Elements ---
-        const rudimentNameEl = document.getElementById('rudiment-name');
         const stickingPatternEl = document.getElementById('sticking-pattern');
         const instructionsEl = document.getElementById('instructions');
         const repetitionsNeededEl = document.getElementById('repetitions-needed');
@@ -650,6 +631,24 @@
         }
 
         function animatePatternChange() {
+            const roll = document.querySelector('.slot-machine-roll');
+
+            // Add animation class with CSS transformation to move patterns upward
+            roll.style.transition = 'transform 0.1s ease-in-out';
+            roll.style.transform = 'rotateX(' + (360 / 12) + 'deg)'; // Rotate one facet angle
+
+            // After animation completes, reset position and update pattern elements
+            setTimeout(() => {
+                // Remove transition to instantly reset position
+                roll.style.transition = 'none';
+                roll.style.transform = 'rotateX(-30deg)'; // Reset to original position
+
+                // After reset is complete (after a tiny delay)
+                setTimeout(() => {
+                    // Re-enable transitions for future animations
+                    roll.style.transition = 'transform 0.2s ease-in-out';
+                }, 50);
+            }, 100); // Same duration as the transition
         }
 
         function loadRudiment(index) {
@@ -674,7 +673,6 @@
             correctRepetitions = 0;
             playerInput = '';
 
-            rudimentNameEl.textContent = `${index + 1}. ${currentRudiment.name}`;
             updateStickingDisplay();
             updateRudiments(index);
 
