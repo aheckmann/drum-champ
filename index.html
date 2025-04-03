@@ -438,7 +438,7 @@
         }
         const failSounds = [
             "samples/fail.mp3",
-            "samples/wilhelm_screem.mp3"
+            "samples/wilhelm_scream.mp3"
         ]
 
         let currentRudimentIndex = 0;
@@ -638,6 +638,22 @@
             }
         }
 
+        // Function to play fail sound with probability distribution
+        async function playFailSound() {
+            // 85% chance for regular fail sound, 15% chance for wilhelm scream
+            const randomValue = Math.random();
+            const soundFile = (randomValue < 0.85) ? 'samples/fail.mp3' : 'samples/wilhelm_scream.mp3';
+
+            try {
+                const buffer = await loadSound(soundFile);
+                if (buffer) {
+                    playSound(buffer);
+                }
+            } catch (error) {
+                console.error(`Error playing fail sound: ${soundFile}`, error);
+            }
+        }
+
         // --- Game Logic ---
         function formatSticking(pattern) {
             // Always use consistent groups of four letters
@@ -813,7 +829,9 @@
                     }
                 }
             } else {
-                // Incorrect input
+                // Incorrect input - play fail sound
+                playFailSound();
+
                 feedbackEl.textContent = `Wrong! Expected ${expectedNote} (${expectedKey.toUpperCase()}). Resetting sequence.`;
                 feedbackEl.style.color = 'red';
                 flashPad(key, 'incorrect', 300); // Flash the pad they hit red
