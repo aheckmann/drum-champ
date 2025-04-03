@@ -466,7 +466,6 @@
         .celebration-text {
             font-size: 1.4em;
             margin: 5px 0;
-            animation: bounce 2s infinite;
             font-weight: bold;
         }
 
@@ -1146,6 +1145,7 @@
 
             const timeText = document.createElement('div');
             timeText.className = 'celebration-text';
+            timeText.style.animation = 'none'; // Disable the bounce animation specifically for this element
             timeText.innerHTML = `Your Time: ${(elapsedTime / 1000).toFixed(3)}s`;
             celebrationContainer.appendChild(timeText);
 
