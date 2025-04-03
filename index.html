@@ -436,6 +436,10 @@
         for (const rud of rudiments) {
             rud.pattern = `${rud.pattern}${rud.pattern}`;
         }
+        const failSounds = [
+            "samples/fail.mp3",
+            "samples/wilhelm_screem.mp3"
+        ]
 
         let currentRudimentIndex = 0;
         let currentPattern = '';
@@ -495,6 +499,9 @@
                 loadSound('samples/beat.mp3').then(buffer => beatSoundBuffer = buffer).catch(e => console.error("Error loading beat sound:", e));
                 for (const rud of rudiments) {
                     loadSound(rud.sound).catch(e => console.error("Error loading sound:", e));
+                }
+                for (const fail of failSounds) {
+                    loadSound(fail).catch(e => console.error("Error loading fail sound:", e));
                 }
 
                 console.log("Audio initialized.");
