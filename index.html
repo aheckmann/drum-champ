@@ -6,20 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Drum Champ</title>
     <style>
-        /* Basic Reset & Body Styling */
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            /* Remove tap highlight on mobile */
         }
 
         html,
         body {
             height: 100%;
-            /* Ensure body takes full height */
             margin: 0;
             overflow: hidden;
-            /* Prevent scrolling */
         }
 
         body {
@@ -27,18 +23,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Replace the gradient with the background image */
             background: url('bg.jpeg') no-repeat center center fixed;
             background-size: cover;
             color: #333;
             text-align: center;
         }
 
-        /* Game Container */
         #game-container {
             background-color: rgba(255, 255, 255, 0.9);
             padding: 20px 25px 5px;
-            /* Slightly adjusted padding */
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             width: 90%;
@@ -46,10 +39,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Center items horizontally */
         }
 
-        /* Add transparency to controls div */
         #controls {
             background-color: rgba(255, 255, 255, 0.7);
             border-radius: 10px;
@@ -70,14 +61,11 @@
             }
         }
 
-        /* Headings and Text */
         h1 {
             color: #3f51b5;
-            /* Indigo */
             margin-top: 0;
             margin-bottom: 10px;
             font-size: 1.8em;
-            /* Relative font size */
         }
 
         #rudiment-name {
@@ -87,127 +75,108 @@
             margin-bottom: 5px;
         }
 
-        /* Slot Machine Style for Rudiment Display */
+        :root {
+            --num-facets: 12;
+            --facet-height: 50px;
+            --cylinder-length: 384px;
+            --angle: calc(360deg / var(--num-facets));
+            --radius: calc((var(--facet-height) / 2) / tan(calc(var(--angle) / 2)));
+        }
+
         .slot-machine-container {
-            position: relative;
-            margin: 15px auto;
-            padding: 5px 0;
-            perspective: 500px;
-            width: 90%;
-            max-width: 400px;
-            border-radius: 10px;
             overflow: hidden;
+            border-radius: 10px;
             background: linear-gradient(180deg, #333, #111);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3),
                 inset 0 2px 5px rgba(255, 255, 255, 0.3);
             border: 2px solid #444;
         }
 
+        .cylinder {
+            perspective: 500px;
+            width: 400px;
+            height: 140px;
+            margin: 10px 58px;
+        }
+
         .slot-machine-window {
-            background-color: #f5f5dc;
-            /* Beige background */
-            border-radius: 5px;
-            margin: 8px;
-            overflow: hidden;
-            height: 120px;
-            /* Height for both patterns */
-            position: relative;
+            transform-style: preserve-3d;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
         }
 
         .slot-machine-roll {
             position: relative;
+            width: var(--cylinder-length);
+            height: var(--facet-height);
             transform-style: preserve-3d;
-            width: 100%;
-            height: 100%;
+            transform: rotateX(-30deg);
+        }
+
+        .pattern-display {
+            position: absolute;
+            top: calc(50% - (var(--facet-height) / 2));
+            left: 0;
+            width: var(--cylinder-length);
+            height: var(--facet-height);
+            background: linear-gradient(to bottom, #ccc, #eee, #ccc);
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            font-family: 'Courier New', Courier, monospace;
             align-items: center;
-            transform: rotateX(5deg);
-            /* Slight tilt for 3D effect */
-        }
-
-        /* Pattern divider */
-        .pattern-divider {
-            width: 95%;
-            height: 2px;
-            background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.3), transparent);
-            margin: 0;
-            position: relative;
-        }
-
-        /* Common styling for both patterns */
-        .pattern-display {
-            font-family: 'Courier New', Courier, monospace;
-            width: 100%;
-            text-align: center;
-            letter-spacing: 2px;
-            word-wrap: break-word;
-            transform-style: preserve-3d;
-            background: transparent;
-            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
-            padding: 10px 15px;
-        }
-
-        .pattern-display {
-            font-family: 'Courier New', Courier, monospace;
             font-size: 0.9em;
             color: #555;
             background-color: #fff;
-            padding: 8px;
+            text-align: center;
+            box-sizing: border-box;
+            backface-visibility: hidden;
+            letter-spacing: 2px;
+            justify-content: center;
+            word-wrap: break-word;
+            transform-style: preserve-3d;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
             border-radius: 5px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             word-wrap: break-word;
-            min-height: 40px;
-            text-align: center;
-            line-height: 40px;
-            /* Match min-height for vertical centering */
-            position: relative;
-            /* Needed for 3D transforms */
+            white-space: pre;
+        }
+
+        @keyframes spinVertical {
+            from {
+                transform: rotateX(0deg);
+            }
+
+            to {
+                transform: rotateX(360deg);
+            }
+        }
+
+        #previous-pattern {
+            transform: rotateX(calc(var(--angle) * 2)) translateZ(var(--radius));
+            opacity: 0.9;
         }
 
         #sticking-pattern {
             font-size: 1.6em;
             color: #333;
-            transform: rotateX(10deg);
-            flex: 1;
+            transform: rotateX(calc(var(--angle) * 1)) translateZ(var(--radius));
             font-weight: bold;
         }
 
-        #upcoming-rudiment {
+        #upcoming-rudiment,
+        #previous-pattern {
             font-size: 1.2em;
             color: #888;
-            transform: rotateX(30deg);
-            /* More tilt for the upcoming pattern */
-            flex: 1;
-            font-style: italic;
-            position: relative;
-            z-index: 1;
         }
 
-        /* Slot machine light effect */
-        .slot-machine-container:before,
-        .slot-machine-container:after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 5px;
-            z-index: 1;
+        #upcoming-rudiment {
+            transform: rotateX(calc(var(--angle) * 0)) translateZ(var(--radius));
+            opacity: 0.6;
         }
 
-        .slot-machine-container:before {
-            top: 0;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
-        }
-
-        .slot-machine-container:after {
-            bottom: 0;
-            background: linear-gradient(to top, rgba(255, 255, 255, 0.2), transparent);
-        }
-
-        /* Enhance next letter highlighting in slot machine context */
         .next-letter {
             display: inline-block;
             background-color: yellow;
@@ -221,46 +190,33 @@
             z-index: 2;
         }
 
-        /* Drum Pads Area */
         #drum-pads {
             display: flex;
             justify-content: space-around;
-            /* Space out pads */
             width: 100%;
-            /* Take full width of container */
             margin-bottom: 20px;
+            margin-top: 20px;
             min-height: 110px;
-            /* Ensure space */
         }
 
-        /* Individual Pads */
         .pad {
             width: 40%;
-            /* Relative width */
             max-width: 120px;
-            /* Max size */
             aspect-ratio: 1 / 1;
-            /* Make them square/circular */
             border-radius: 50%;
             display: flex;
             flex-direction: column;
-            /* Stack text vertically */
             justify-content: center;
             align-items: center;
             font-size: 1.1em;
-            /* Adjust font size for smaller pads */
             font-weight: bold;
             color: white;
             cursor: pointer;
-            /* Indicate interactivity */
             transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease;
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
             user-select: none;
-            /* Prevent text selection on tap */
             -webkit-user-select: none;
-            /* Safari */
             -ms-user-select: none;
-            /* IE */
         }
 
         .pad span {
@@ -271,17 +227,14 @@
 
         #left-pad {
             background-color: #4CAF50;
-            /* Green */
             border: 4px solid #388E3C;
         }
 
         #right-pad {
             background-color: #2196F3;
-            /* Blue */
             border: 4px solid #1976D2;
         }
 
-        /* Pad Feedback Styles */
         .pad.active {
             transform: scale(1.1);
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
@@ -294,20 +247,17 @@
 
         .pad.correct {
             background-color: #81C784 !important;
-            /* Lighter Green */
             border-color: #66BB6A;
         }
 
         .pad.incorrect {
             background-color: #E57373 !important;
-            /* Lighter Red */
             border-color: #EF5350;
             animation: shake 0.3s;
         }
 
         @keyframes shake {
 
-            /* Shake animation */
             0%,
             100% {
                 transform: translateX(0);
@@ -322,10 +272,8 @@
             }
         }
 
-        /* Feedback & Input Display */
         #feedback {
             font-size: 1.1em;
-            /* Relative font size */
             font-weight: bold;
             min-height: 30px;
             margin-top: 15px;
@@ -334,7 +282,6 @@
         #current-input {
             font-family: 'Courier New', Courier, monospace;
             font-size: 1.2em;
-            /* Relative font size */
             min-height: 25px;
             margin-top: 8px;
             color: #333;
@@ -344,42 +291,19 @@
             border-radius: 5px;
             display: inline-block;
             word-wrap: break-word;
-            /* Wrap long input */
         }
 
-        /* Remove Demo Button styles */
         button#demo-button {
             display: none;
-            /* Hide instead of removing completely for safety */
         }
 
-        .pattern-display {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9em;
-            color: #555;
-            background-color: #fff;
-            padding: 8px;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            word-wrap: break-word;
-            min-height: 40px;
-            text-align: center;
-            line-height: 40px;
-            /* Match min-height for vertical centering */
-            position: relative;
-            /* Needed for 3D transforms */
-        }
-
-        /* Add disabled state for pads */
         .pad.disabled {
             opacity: 0.6;
             cursor: not-allowed;
             pointer-events: none;
-            /* Prevent interactions */
             box-shadow: none;
         }
 
-        /* Highlight for the next letter to play */
         .next-letter {
             display: inline-block;
             background-color: yellow;
@@ -424,41 +348,6 @@
             opacity: 1;
         }
 
-        /* Styling for the upcoming rudiment */
-        #upcoming-rudiment {
-            font-size: 1.2em;
-            color: #888;
-            margin-top: 10px;
-            transform: rotateX(30deg);
-            /* Simulate slot machine tilt */
-            text-align: center;
-            font-weight: bold;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 5px 10px;
-            border-radius: 10px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-            width: 80%;
-            max-width: 300px;
-        }
-
-        @keyframes rollUpdate {
-            0% {
-                transform: translateY(-5px) rotateX(5deg);
-            }
-
-            15% {
-                transform: translateY(15px) rotateX(5deg);
-            }
-
-            30% {
-                transform: translateY(0) rotateX(5deg);
-            }
-
-            100% {
-                transform: translateY(0) rotateX(5deg);
-            }
-        }
-
         @keyframes fadeIn {
             from {
                 opacity: 0.4;
@@ -495,11 +384,13 @@
 
             <!-- Slot machine container for both patterns -->
             <div class="slot-machine-container">
-                <div class="slot-machine-window">
-                    <div class="slot-machine-roll">
-                        <div id="sticking-pattern" class="pattern-display"></div>
-                        <div class="pattern-divider"></div>
-                        <div id="upcoming-rudiment" class="pattern-display">Next pattern</div>
+                <div class="cylinder">
+                    <div class="slot-machine-window">
+                        <div class="slot-machine-roll">
+                            <div id="upcoming-rudiment" class="pattern-display">Next pattern</div>
+                            <div id="sticking-pattern" class="pattern-display"></div>
+                            <div id="previous-pattern" class="pattern-display"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -518,7 +409,7 @@
         const rudiments = [
             { name: "Single Stroke", pattern: "RLRLRLRL", sound: "samples/crash-1.mp3" },
             { name: "Single Stroke", pattern: "LRLRLRLR", sound: "samples/crash-2.mp3" },
-            // { name: "Double Stroke", pattern: "RRLLRRLL", sound: "samples/crash-2.mp3" },
+            { name: "Double Stroke", pattern: "RRLLRRLL", sound: "samples/crash-2.mp3" },
             // { name: "Double Stroke", pattern: "LLRRLLRR", sound: "samples/crash-3.mp3" },
             // { name: "Paradiddle", pattern: "RLRRLRLL", sound: "samples/crash-4.mp3" },
             // { name: "Paradiddle", pattern: "LRRLRLLR", sound: "samples/crash-3.mp3" },
@@ -703,7 +594,6 @@
             }
 
             try {
-                // Stop any existing beat loop
                 stopBeatLoop();
 
                 beatLoopSource = audioContext.createBufferSource();
@@ -739,48 +629,33 @@
             return formatted.trim();
         }
 
-        function updateUpcomingRudiment(index) {
+        function updateRudiments(index) {
+            const prevRudiment = rudiments[index - 1] || null;
             const nextRudiment = rudiments[index + 1] || null;
             const upcomingRudimentEl = document.getElementById('upcoming-rudiment');
+            const previousRudimentEl = document.getElementById('previous-pattern');
+
+            if (prevRudiment) {
+                previousRudimentEl.textContent = formatSticking(prevRudiment.pattern);
+            } else {
+                previousRudimentEl.textContent = '';
+            }
 
             if (nextRudiment) {
                 upcomingRudimentEl.textContent = formatSticking(nextRudiment.pattern);
-                upcomingRudimentEl.style.color = '#777'; // Slightly more visible color
-                upcomingRudimentEl.style.opacity = '0.8';
             } else {
                 upcomingRudimentEl.textContent = 'Final Pattern!';
                 upcomingRudimentEl.style.color = '#999';
-                upcomingRudimentEl.style.opacity = '0.6';
             }
-
-            // Add roll animation when updating
-            const slotRoll = document.querySelector('.slot-machine-roll');
-            slotRoll.style.animation = 'none';
-            setTimeout(() => {
-                slotRoll.style.animation = 'rollUpdate 0.5s ease-out';
-            }, 50);
         }
 
-        // Add function to animate pattern change
         function animatePatternChange() {
-            const slotRoll = document.querySelector('.slot-machine-roll');
-            slotRoll.style.animation = 'spin 0.8s ease-out';
-
-            // Add event listener for animation end
-            const onAnimationEnd = () => {
-                slotRoll.style.animation = '';
-                slotRoll.removeEventListener('animationend', onAnimationEnd);
-            };
-
-            slotRoll.addEventListener('animationend', onAnimationEnd);
         }
 
         function loadRudiment(index) {
             const previousRudiment = rudiments[index - 1] || null;
             const currentRudiment = rudiments[index];
             const nextRudiment = rudiments[index + 1] || null;
-
-            // Remove timer start from here - it will start on first player input instead
 
             if (!currentRudiment) {
                 completeGame(); // End game when no more rudiments
@@ -801,7 +676,7 @@
 
             rudimentNameEl.textContent = `${index + 1}. ${currentRudiment.name}`;
             updateStickingDisplay();
-            updateUpcomingRudiment(index);
+            updateRudiments(index);
 
             if (repetitionsNeededEl) {
                 repetitionsNeededEl.textContent = requiredRepetitions;
@@ -1092,10 +967,8 @@
         }
 
         function resetGame() {
-            // Stop any playing beat loop
             stopBeatLoop();
 
-            // Hide Play Again button
             const playAgainBtn = document.getElementById('play-again-button');
             if (playAgainBtn) {
                 playAgainBtn.remove();
@@ -1122,17 +995,15 @@
             }
         }
 
-        // --- Initial Load ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Create timer element
             timerEl = document.createElement('div');
             timerEl.id = 'timer';
             timerEl.style.marginTop = '10px';
             timerEl.style.fontSize = '1.2em';
             timerEl.style.color = '#333';
+            timerEl.textContent = 'Time: 0.000s';
             document.getElementById('controls').appendChild(timerEl);
 
-            // Create high score element
             highScoreEl = document.createElement('div');
             highScoreEl.id = 'high-score';
             highScoreEl.style.marginTop = '5px';
@@ -1142,21 +1013,12 @@
 
             displayHighScore();
 
-            // Add event listener for reset record button
             document.getElementById('reset-record').addEventListener('click', resetHighScore);
-
-            // Ensure pad click listeners are attached
             addInputListeners();
-
-            // Initialize the first rudiment
             loadRudiment(0);
         });
 
-        // Make sure event listeners are attached immediately
         addInputListeners();
-
-        // Call initAudio once, possibly deferred or on first interaction if strict guarantees needed
-        // Calling it here attempts early load, but resume logic handles browser policies.
         initAudio();
     </script>
 </body>
