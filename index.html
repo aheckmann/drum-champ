@@ -436,9 +436,10 @@
         for (const rud of rudiments) {
             rud.pattern = `${rud.pattern}${rud.pattern}`;
         }
-        const failSounds = [
+        const preloadSounds = [
             "samples/fail.mp3",
-            "samples/wilhelm_scream.mp3"
+            "samples/wilhelm_scream.mp3",
+            "samples/cheer.mp3",
         ]
 
         let currentRudimentIndex = 0;
@@ -500,8 +501,8 @@
                 for (const rud of rudiments) {
                     loadSound(rud.sound).catch(e => console.error("Error loading sound:", e));
                 }
-                for (const fail of failSounds) {
-                    loadSound(fail).catch(e => console.error("Error loading fail sound:", e));
+                for (const sound of preloadSounds) {
+                    loadSound(sound).catch(e => console.error("Error loading sound:", e));
                 }
 
                 console.log("Audio initialized.");
@@ -651,6 +652,18 @@
                 }
             } catch (error) {
                 console.error(`Error playing fail sound: ${soundFile}`, error);
+            }
+        }
+
+        // Function to play cheer sound when game completes
+        async function playCheerSound() {
+            try {
+                const buffer = await loadSound('samples/cheer.mp3');
+                if (buffer) {
+                    playSound(buffer);
+                }
+            } catch (error) {
+                console.error("Error playing cheer sound:", error);
             }
         }
 
@@ -988,6 +1001,9 @@
 
             // Hide the controls when game ends
             document.getElementById('controls').style.display = 'none';
+
+            // Play cheer sound immediately
+            playCheerSound();
 
             // Play fill sound, then start beat loop when it completes
             playFillSound(() => {
