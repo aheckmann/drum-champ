@@ -382,6 +382,119 @@
                 font-size: 0.5em;
             }
         }
+
+        @keyframes confetti {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-20px);
+            }
+
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes pulse-rainbow {
+            0% {
+                color: #ff0000;
+                transform: scale(1);
+            }
+
+            20% {
+                color: #ff9900;
+                transform: scale(1.05);
+            }
+
+            40% {
+                color: #33cc33;
+                transform: scale(1);
+            }
+
+            60% {
+                color: #3399ff;
+                transform: scale(1.05);
+            }
+
+            80% {
+                color: #cc33ff;
+                transform: scale(1);
+            }
+
+            100% {
+                color: #ff0000;
+                transform: scale(1.05);
+            }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: confetti 3s ease-in-out infinite;
+            z-index: 999;
+        }
+
+        .celebration-title {
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            animation: pulse-rainbow 3s infinite;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .celebration-text {
+            font-size: 1.4em;
+            margin: 5px 0;
+            animation: bounce 2s infinite;
+            font-weight: bold;
+        }
+
+        .record-text {
+            font-size: 1.2em;
+            margin: 5px 0;
+            color: #ff9900;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        #play-again-button.celebration-button {
+            padding: 12px 24px;
+            font-size: 1.2em;
+            background: linear-gradient(45deg, #ff9900, #ff5e62);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            animation: bounce 2s infinite;
+        }
+
+        #play-again-button.celebration-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 
@@ -998,6 +1111,7 @@
             stopTimer();
             const elapsedTime = getElapsedTime();
             const highScore = saveHighScore(elapsedTime);
+            const isNewRecord = elapsedTime === highScore;
 
             // Hide the controls when game ends
             document.getElementById('controls').style.display = 'none';
@@ -1010,8 +1124,41 @@
                 playBeatLoop();
             });
 
-            feedbackEl.innerHTML = `Game Complete!<br>Time: ${(elapsedTime / 1000).toFixed(3)}s.<br>Record: ${(highScore / 1000).toFixed(3)}s`;
-            feedbackEl.style.color = '#3f51b5'; // Indigo
+            // Create confetti elements
+            createConfetti();
+
+            // Create celebratory UI
+            feedbackEl.innerHTML = '';
+
+            // Create celebration container
+            const celebrationContainer = document.createElement('div');
+            celebrationContainer.style.padding = '20px';
+            celebrationContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+            celebrationContainer.style.borderRadius = '15px';
+            celebrationContainer.style.boxShadow = '0 5px 30px rgba(0, 0, 0, 0.2)';
+            celebrationContainer.style.marginTop = '10px';
+
+            // Add celebration elements
+            const title = document.createElement('div');
+            title.className = 'celebration-title';
+            title.innerHTML = '🎉 YOU DID IT! 🎉';
+            celebrationContainer.appendChild(title);
+
+            const timeText = document.createElement('div');
+            timeText.className = 'celebration-text';
+            timeText.innerHTML = `Your Time: ${(elapsedTime / 1000).toFixed(3)}s`;
+            celebrationContainer.appendChild(timeText);
+
+            const recordText = document.createElement('div');
+            recordText.className = 'record-text';
+            if (isNewRecord) {
+                recordText.innerHTML = '🏆 NEW RECORD! 🏆';
+            } else {
+                recordText.innerHTML = `Record: ${(highScore / 1000).toFixed(3)}s`;
+            }
+            celebrationContainer.appendChild(recordText);
+
+            feedbackEl.appendChild(celebrationContainer);
 
             // Check if Play Again button already exists
             let playAgainBtn = document.getElementById('play-again-button');
@@ -1019,21 +1166,49 @@
             if (!playAgainBtn) {
                 playAgainBtn = document.createElement('button');
                 playAgainBtn.id = 'play-again-button';
-                playAgainBtn.textContent = 'Play Again';
-                playAgainBtn.style.padding = '10px 20px';
-                playAgainBtn.style.fontSize = '1em';
-                playAgainBtn.style.backgroundColor = '#4CAF50'; // Green
-                playAgainBtn.style.color = 'white';
-                playAgainBtn.style.border = 'none';
-                playAgainBtn.style.borderRadius = '5px';
-                playAgainBtn.style.cursor = 'pointer';
-                playAgainBtn.style.marginTop = '20px';
+                playAgainBtn.className = 'celebration-button';
+                playAgainBtn.textContent = '🥁 Play Again 🥁';
                 playAgainBtn.addEventListener('click', resetGame);
                 document.getElementById('game-container').appendChild(playAgainBtn);
             } else {
-                // If button already exists, make sure it's visible
+                // If button already exists, make sure it's visible and styled
                 playAgainBtn.style.display = 'inline-block';
+                playAgainBtn.className = 'celebration-button';
+                playAgainBtn.textContent = '🥁 Play Again 🥁';
             }
+        }
+
+        function createConfetti() {
+            // Remove any existing confetti
+            document.querySelectorAll('.confetti').forEach(el => el.remove());
+
+            // Create confetti elements
+            const colors = ['#ff0000', '#ff9900', '#ffff00', '#33cc33', '#3399ff', '#cc33ff'];
+            const gameContainer = document.getElementById('game-container');
+            const containerRect = gameContainer.getBoundingClientRect();
+
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+
+                // Position confetti inside the game container
+                confetti.style.left = `${Math.random() * 100}%`; // Use percentage for responsive positioning
+                confetti.style.top = '0'; // Start at the top of the container
+
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 10 + 5}px`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                confetti.style.animationDelay = `${Math.random() * 2}s`;
+
+                // Append to game container instead of body
+                gameContainer.appendChild(confetti);
+            }
+
+            // Remove confetti after animation completes to avoid memory issues
+            setTimeout(() => {
+                document.querySelectorAll('.confetti').forEach(el => el.remove());
+            }, 5000);
         }
 
         function resetGame() {
