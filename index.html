@@ -444,7 +444,6 @@
         let correctRepetitions = 0;
         let requiredRepetitions = 3;
         let audioContext;
-        let leftSoundBuffer;
         let rightSoundBuffer;
         let soundInitialized = false;
         let soundBufferCache = {}; // Cache for storing loaded sound buffers
@@ -469,40 +468,40 @@
         // --- Audio Setup ---
         function initAudio() {
             if (soundInitialized) return; // Prevent re-initialization
+            soundInitialized = true;
             try {
                 window.AudioContext = window.AudioContext || window.webkitAudioContext;
                 if (!window.AudioContext) {
                     console.warn("Web Audio API is not supported in this browser.");
                     feedbackEl.textContent = "Warning: Audio not supported.";
                     feedbackEl.style.color = 'orange';
-                    soundInitialized = true; // Mark as "initialized" even if failed
                     return;
                 }
                 audioContext = new AudioContext();
                 // Resume context on first user interaction (required by browsers)
-                const resumeAudio = () => {
-                    if (audioContext.state === 'suspended') {
-                        audioContext.resume();
+                const resumeAudio = (e) => {
+                    switch (audioContext.state) {
+                        case 'suspended': {
+                            audioContext.resume();
+                        }
                     }
-                    document.removeEventListener('click', resumeAudio);
-                    document.removeEventListener('keydown', resumeAudio);
-                    document.removeEventListener('touchstart', resumeAudio);
                 };
                 document.addEventListener('click', resumeAudio);
                 document.addEventListener('keydown', resumeAudio);
                 document.addEventListener('touchstart', resumeAudio);
 
-                loadSound('samples/snare.mp3').then(buffer => leftSoundBuffer = rightSoundBuffer = buffer).catch(e => console.error("Error loading snare sound:", e));
+                loadSound('samples/snare.mp3').then(buffer => rightSoundBuffer = buffer).catch(e => console.error("Error loading snare sound:", e));
                 loadSound('samples/fill.mp3').then(buffer => fillSoundBuffer = buffer).catch(e => console.error("Error loading fill sound:", e));
                 loadSound('samples/beat.mp3').then(buffer => beatSoundBuffer = buffer).catch(e => console.error("Error loading beat sound:", e));
+                for (const rud of rudiments) {
+                    loadSound(rud.sound).catch(e => console.error("Error loading sound:", e));
+                }
 
-                soundInitialized = true;
                 console.log("Audio initialized.");
             } catch (e) {
                 console.error("Error initializing AudioContext:", e);
                 feedbackEl.textContent = "Error initializing audio.";
                 feedbackEl.style.color = 'red';
-                soundInitialized = true; // Mark as done
             }
         }
 
@@ -536,11 +535,13 @@
         }
 
         function playSound(buffer) {
+            // Attempt to resume if suspended, might happen if interaction was missed
+            console.log('audioContext.state', audioContext?.state);
+            if (audioContext?.state === 'suspended') {
+                audioContext.resume();
+            }
+
             if (!audioContext || !buffer || audioContext.state !== 'running') {
-                // Attempt to resume if suspended, might happen if interaction was missed
-                if (audioContext && audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
                 // Don't play if context not running or buffer invalid
                 return;
             }
@@ -773,11 +774,10 @@
             const expectedNote = expectedInput[playerInput.length]; // 'R' or 'L'
             const expectedKey = (expectedNote === 'L') ? 'd' : 'k';
             const hand = (key === 'd') ? 'L' : 'R';
-            const soundBuffer = (key === 'd') ? leftSoundBuffer : rightSoundBuffer;
+            const snareBuffer = soundBufferCache['samples/snare.mp3'];
 
             if (key === expectedKey) {
-                // Correct input
-                playSound(soundBuffer); // Play sound for the pad hit
+                playSound(snareBuffer);
                 playerInput += hand;
                 feedbackEl.textContent = 'Correct!';
                 feedbackEl.style.color = 'green';
